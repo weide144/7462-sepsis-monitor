@@ -1,12 +1,12 @@
-on: [workflow_dispatch]
+#on: [workflow_dispatch]
 
 # Un-comment the following lines (and comment out the first one) to make this a scheduled job
-#on:
-#  schedule:
-#    - cron:  '0 22 * * *'
-#  push:
-#    branches: main
-#  workflow_dispatch:
+on:
+  schedule:
+    - cron:  '0 * * * *'
+  push:
+    branches: main
+  workflow_dispatch:
 
 name: Render Report
 
@@ -36,17 +36,20 @@ jobs:
                any::knitr
                any::rmarkdown
                any::jsonlite
-               any::dplyr
-               any::ggplot2
-               any::readr
+               any::tidyverse
+               any::data.table
+               any::googledrive
                any::lubridate
-               any::forcats
-
+               any::knitr
+               
+      - name: Debugging Step
+        run: ls 
+          
       - name: Render document
         uses: quarto-dev/quarto-actions/render@v2
         with:
-          to: gfm
-          path: README.qmd
+          to: html
+          path: "./Assignment 7 Report.qmd"
 
       - name: Setup git config
         run: |
