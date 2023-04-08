@@ -43,7 +43,7 @@ jobs:
                any::knitr
                
       - name: Debugging Step
-        run: ls /
+        run: ls 
           
       - name: Render document
         uses: quarto-dev/quarto-actions/render@v2
