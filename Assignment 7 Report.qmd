@@ -40,7 +40,15 @@ Sys.time()
 #| message: false
 #| warning: false
 
+drive_deauth()
 sepsis_filepath <- "https://drive.google.com/file/d/1_IZSDUMerf2T4rHtWOHqBZP5mB-WrxH3/view?usp=sharing"
+
+new_data <- updateData(sepsis_filepath)
+
+most_recent_data <- new_data %>%
+  group_by(PatientID) %>%
+  filter(obsTime == max(obsTime))
+
 
 sepsis.df <- drive_read_string(sepsis_filepath) %>%
   read_csv()
