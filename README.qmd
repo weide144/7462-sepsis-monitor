@@ -1,0 +1,118 @@
+---
+title: "Assignment 7 Report"
+author: "Ben Weideman"
+format: html
+editor: visual
+options:
+  error: FALSE
+editor: visual
+---
+
+```{r}
+#| include: false
+#| message: false
+#| warning: false
+
+#Library and Functions
+library(tidyverse)
+library(data.table) ## For the fread function
+library(lubridate)
+library(tictoc)
+library(googledrive)
+library(knitr)
+
+source("sepsis_monitor_functions.R")
+```
+
+### Date & Time:
+
+```{r}
+#| echo: false
+#| error: false
+
+Sys.time()
+```
+
+### Table of Last Vitals for Patients with Sepsis
+
+```{r}
+#| echo: false
+#| error: false
+#| message: false
+#| warning: false
+
+drive_deauth()
+sepsis_filepath <- "https://drive.google.com/file/d/1_IZSDUMerf2T4rHtWOHqBZP5mB-WrxH3/view?usp=sharing"
+
+new_data <- updateData(sepsis_filepath)
+
+most_recent_data <- new_data %>%
+  group_by(PatientID) %>%
+  filter(obsTime == max(obsTime))
+
+
+sepsis.df <- drive_read_string(sepsis_filepath) %>%
+  read_csv()
+
+sepsis.df$obsTime <- as.Date(sepsis.df$obsTime)
+
+sepsis.tbl <- sepsis.df %>%
+  filter(SepsisLabel == 1) %>%
+  group_by(PatientID) %>%
+  summarize(HR = last(na.omit(HR)),
+            Temp = last(na.omit(Temp)),
+            Resp = last(na.omit(Resp)))
+
+kable(sepsis.tbl)
+```
+
+### Vital Plots for Patients with Sepsis
+
+```{r}
+#| echo: false
+#| error: false
+#| message: false
+#| warning: false
+
+patients <- sepsis.tbl$PatientID
+sepsis.patiets.df <- sepsis.df %>%
+  filter(PatientID %in% patients)
+
+#HR Plots
+ggplot(sepsis.patiets.df, aes(x = obsTime, y = HR)) +
+  geom_point() +
+  facet_wrap(~ PatientID) +
+  theme_bw() +
+  ggtitle("Sepsis Patients Heart Rate during Stay")
+
+#Temperature Plots
+ggplot(sepsis.patiets.df, aes(x = obsTime, y = Temp)) +
+  geom_point() +
+  facet_wrap(~ PatientID) +
+  theme_bw() +
+  ggtitle("Sepsis Patients Temperatures during Stay")
+
+#Respirations Plots
+ggplot(sepsis.patiets.df, aes(x = obsTime, y = Resp)) +
+  geom_point() +
+  facet_wrap(~ PatientID) +
+  theme_bw() +
+  ggtitle("Sepsis Patients Respirations during Stay")
+```
+
+### Table of change in vitals between last two measurements for all patients
+
+```{r}
+#| echo: false
+#| error: false
+#| message: false
+#| warning: false
+
+sepsis.tbl2 <- sepsis.df %>%
+  group_by(PatientID) %>%
+  summarize(HR_Change = last(na.omit(HR) - second_to_last(HR)),
+            Temp_Change = last(na.omit(Temp) - second_to_last(Temp)),
+            Resp_Change = last(na.omit(Resp) - second_to_last(Resp)))
+
+kable(sepsis.tbl2)
+```
