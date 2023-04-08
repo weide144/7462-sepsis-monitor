@@ -56,3 +56,6 @@ updateData <- function(drive_url) {
   return(updated_data)
 }
 
+second_to_last <- function(value){
+    tail(na.omit(value), 2)[1]
+}
